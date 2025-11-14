@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Memo SNS">
+    <title>Memo SNS</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+    <div id="app">
+        <!-- ヘッダー -->
+        <header>
+            <div class="header-content">
+                <h1>📝 Memo SNS</h1>
+                <div class="header-actions">
+                    <button id="searchBtn" class="icon-btn" title="検索">🔍</button>
+                    <button id="settingsBtn" class="icon-btn" title="設定">⚙️</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 投稿フォーム -->
+        <div class="post-form-container">
+            <div class="user-icon-area">
+                <img id="currentUserIcon" src="" alt="アイコン" class="user-icon">
+            </div>
+            <div class="post-input-area">
+                <textarea id="postText" placeholder="いまどうしてる？" rows="3"></textarea>
+                <div class="post-actions">
+                    <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
+                    <label for="imageInput" class="btn-secondary">📷 画像</label>
+                    <button id="postBtn" class="btn-primary">投稿</button>
+                </div>
+                <div id="imagePreview" class="image-preview"></div>
+            </div>
+        </div>
+
+        <!-- タイムライン -->
+        <div id="timeline" class="timeline"></div>
+
+        <!-- 検索モーダル -->
+        <div id="searchModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>🔍 ハッシュタグ検索</h2>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="hashtagSearch" placeholder="#タグを検索..." class="search-input">
+                    <button id="clearFilterBtn" class="btn-secondary full-width">すべて表示</button>
+                    <div id="hashtagList" class="hashtag-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 設定モーダル -->
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>⚙️ 設定</h2>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="setting-item">
+                        <label>アイコン変更</label>
+                        <input type="file" id="iconInput" accept="image/*">
+                    </div>
+                    <div class="setting-item">
+                        <label>背景画像</label>
+                        <input type="file" id="bgInput" accept="image/*">
+                        <button id="clearBgBtn" class="btn-secondary">背景をクリア</button>
+                    </div>
+                    <div class="setting-item">
+                        <label>カラーテーマ</label>
+                        <select id="themeSelect">
+                            <option value="chocolate">チョコレート</option>
+                            <option value="sakura">桜</option>
+                            <option value="ocean">オーシャン</option>
+                            <option value="forest">フォレスト</option>
+                            <option value="sunset">サンセット</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <button id="exportBtn" class="btn-primary full-width">💾 データをエクスポート</button>
+                        <input type="file" id="importInput" accept=".json" style="display: none;">
+                        <label for="importInput" class="btn-secondary full-width">📂 データをインポート</label>
+                    </div>
+                    <div class="setting-item">
+                        <button id="clearDataBtn" class="btn-danger full-width">🗑️ 全データを削除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

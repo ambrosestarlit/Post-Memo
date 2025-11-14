@@ -1,0 +1,594 @@
+// ===== 初期化 =====
+let posts = [];
+let currentFilter = null;
+let selectedImages = [];
+let userIcon = null;
+let backgroundImage = null;
+
+// LocalStorageキー
+const STORAGE_KEYS = {
+    POSTS: 'memoSNS_posts',
+    ICON: 'memoSNS_userIcon',
+    BACKGROUND: 'memoSNS_background',
+    THEME: 'memoSNS_theme'
+};
+
+// ===== 初期読み込み =====
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+    initializeEventListeners();
+    renderTimeline();
+    
+    // デフォルトアイコンを設定
+    if (!userIcon) {
+        userIcon = createDefaultIcon();
+        saveIcon();
+    }
+    updateUserIcon();
+});
+
+// ===== イベントリスナー初期化 =====
+function initializeEventListeners() {
+    // 投稿ボタン
+    document.getElementById('postBtn').addEventListener('click', createPost);
+    
+    // 画像選択
+    document.getElementById('imageInput').addEventListener('change', handleImageSelect);
+    
+    // Enter キーで投稿 (Shift+Enter で改行)
+    document.getElementById('postText').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            createPost();
+        }
+    });
+    
+    // 検索ボタン
+    document.getElementById('searchBtn').addEventListener('click', openSearchModal);
+    
+    // 設定ボタン
+    document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
+    
+    // モーダル閉じる
+    document.querySelectorAll('.close-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            btn.closest('.modal').classList.remove('active');
+        });
+    });
+    
+    // モーダル外クリックで閉じる
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+    });
+    
+    // 検索機能
+    document.getElementById('hashtagSearch').addEventListener('input', filterHashtags);
+    document.getElementById('clearFilterBtn').addEventListener('click', clearFilter);
+    
+    // 設定
+    document.getElementById('iconInput').addEventListener('change', handleIconChange);
+    document.getElementById('bgInput').addEventListener('change', handleBackgroundChange);
+    document.getElementById('clearBgBtn').addEventListener('click', clearBackground);
+    document.getElementById('themeSelect').addEventListener('change', handleThemeChange);
+    document.getElementById('exportBtn').addEventListener('click', exportData);
+    document.getElementById('importInput').addEventListener('change', importData);
+    document.getElementById('clearDataBtn').addEventListener('click', clearAllData);
+}
+
+// ===== デフォルトアイコン生成 =====
+function createDefaultIcon() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 200;
+    canvas.height = 200;
+    const ctx = canvas.getContext('2d');
+    
+    // グラデーション背景
+    const gradient = ctx.createLinearGradient(0, 0, 200, 200);
+    gradient.addColorStop(0, '#8B4513');
+    gradient.addColorStop(1, '#D2691E');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 200, 200);
+    
+    // 顔の輪郭
+    ctx.fillStyle = '#FFF';
+    ctx.beginPath();
+    ctx.arc(100, 100, 60, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 目
+    ctx.fillStyle = '#333';
+    ctx.beginPath();
+    ctx.arc(80, 90, 8, 0, Math.PI * 2);
+    ctx.arc(120, 90, 8, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 口
+    ctx.beginPath();
+    ctx.arc(100, 100, 30, 0, Math.PI);
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    
+    return canvas.toDataURL();
+}
+
+// ===== データ読み込み =====
+function loadData() {
+    const savedPosts = localStorage.getItem(STORAGE_KEYS.POSTS);
+    if (savedPosts) {
+        posts = JSON.parse(savedPosts);
+    }
+    
+    const savedIcon = localStorage.getItem(STORAGE_KEYS.ICON);
+    if (savedIcon) {
+        userIcon = savedIcon;
+    }
+    
+    const savedBg = localStorage.getItem(STORAGE_KEYS.BACKGROUND);
+    if (savedBg) {
+        backgroundImage = savedBg;
+        document.body.style.backgroundImage = `url(${savedBg})`;
+    }
+    
+    const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
+    if (savedTheme) {
+        document.body.setAttribute('data-theme', savedTheme);
+        document.getElementById('themeSelect').value = savedTheme;
+    }
+}
+
+// ===== データ保存 =====
+function saveData() {
+    localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts));
+}
+
+function saveIcon() {
+    localStorage.setItem(STORAGE_KEYS.ICON, userIcon);
+}
+
+function updateUserIcon() {
+    document.getElementById('currentUserIcon').src = userIcon;
+}
+
+// ===== 画像選択ハンドラー =====
+function handleImageSelect(e) {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            selectedImages.push({
+                data: event.target.result,
+                name: file.name
+            });
+            renderImagePreview();
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderImagePreview() {
+    const preview = document.getElementById('imagePreview');
+    preview.innerHTML = '';
+    
+    selectedImages.forEach((img, index) => {
+        const div = document.createElement('div');
+        div.className = 'preview-item';
+        div.innerHTML = `
+            <img src="${img.data}" alt="${img.name}">
+            <button class="preview-remove" onclick="removePreviewImage(${index})">×</button>
+        `;
+        preview.appendChild(div);
+    });
+}
+
+function removePreviewImage(index) {
+    selectedImages.splice(index, 1);
+    renderImagePreview();
+}
+
+// ===== 投稿作成 =====
+function createPost() {
+    const textArea = document.getElementById('postText');
+    const text = textArea.value.trim();
+    
+    if (!text && selectedImages.length === 0) {
+        alert('テキストまたは画像を入力してください');
+        return;
+    }
+    
+    const post = {
+        id: Date.now(),
+        text: text,
+        images: [...selectedImages],
+        timestamp: new Date().toISOString(),
+        icon: userIcon
+    };
+    
+    posts.unshift(post);
+    saveData();
+    
+    // フォームをクリア
+    textArea.value = '';
+    selectedImages = [];
+    document.getElementById('imagePreview').innerHTML = '';
+    document.getElementById('imageInput').value = '';
+    
+    renderTimeline();
+}
+
+// ===== タイムライン描画 =====
+function renderTimeline() {
+    const timeline = document.getElementById('timeline');
+    const filteredPosts = currentFilter 
+        ? posts.filter(post => post.text.includes(currentFilter))
+        : posts;
+    
+    if (filteredPosts.length === 0) {
+        timeline.innerHTML = `
+            <div class="empty-state">
+                <div style="font-size: 3rem;">📝</div>
+                <p>${currentFilter ? 'このハッシュタグの投稿がありません' : '投稿がありません'}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    timeline.innerHTML = '';
+    filteredPosts.forEach(post => {
+        const postElement = createPostElement(post);
+        timeline.appendChild(postElement);
+    });
+}
+
+// ===== 投稿要素作成 =====
+function createPostElement(post) {
+    const div = document.createElement('div');
+    div.className = 'post-item';
+    
+    const time = new Date(post.timestamp);
+    const timeStr = formatTime(time);
+    
+    // テキスト処理（ハッシュタグとURLを検出）
+    const processedText = processText(post.text);
+    
+    // 画像のグリッドクラス
+    let imageGridClass = 'single';
+    if (post.images.length === 2) imageGridClass = 'double';
+    else if (post.images.length > 2) imageGridClass = 'multiple';
+    
+    div.innerHTML = `
+        <img src="${post.icon || userIcon}" alt="アイコン" class="user-icon">
+        <div class="post-content">
+            <div class="post-header">
+                <div class="post-time">${timeStr}</div>
+            </div>
+            ${post.text ? `<div class="post-text">${processedText}</div>` : ''}
+            ${post.images.length > 0 ? `
+                <div class="post-images ${imageGridClass}">
+                    ${post.images.map((img, idx) => `
+                        <img src="${img.data}" alt="${img.name}" class="post-image" onclick="downloadImage('${img.data}', '${img.name}')">
+                    `).join('')}
+                </div>
+            ` : ''}
+            <div class="post-actions-bottom">
+                ${post.text ? `<button class="action-btn" onclick="copyText(\`${escapeText(post.text)}\`)">
+                    📋 コピー
+                </button>` : ''}
+                ${post.images.length > 0 ? `<button class="action-btn" onclick="downloadAllImages(${post.id})">
+                    💾 画像保存
+                </button>` : ''}
+                <button class="action-btn" onclick="deletePost(${post.id})" style="background: #dc3545;">
+                    🗑️ 削除
+                </button>
+            </div>
+        </div>
+    `;
+    
+    return div;
+}
+
+// ===== テキスト処理 =====
+function processText(text) {
+    // URLを検出してリンク化
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    text = text.replace(urlRegex, '<a href="$1" target="_blank" class="post-url">$1</a>');
+    
+    // ハッシュタグを検出
+    const hashtagRegex = /#([^\s#]+)/g;
+    text = text.replace(hashtagRegex, '<span class="hashtag" onclick="filterByHashtag(\'#$1\')">#$1</span>');
+    
+    return text;
+}
+
+function escapeText(text) {
+    return text.replace(/`/g, '\\`').replace(/\$/g, '\\$');
+}
+
+// ===== 時刻フォーマット =====
+function formatTime(date) {
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'たった今';
+    if (minutes < 60) return `${minutes}分前`;
+    if (hours < 24) return `${hours}時間前`;
+    if (days < 7) return `${days}日前`;
+    
+    return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+// ===== コピー機能 =====
+function copyText(text) {
+    // HTMLタグを除去
+    const temp = document.createElement('div');
+    temp.innerHTML = text;
+    const plainText = temp.textContent || temp.innerText;
+    
+    navigator.clipboard.writeText(plainText).then(() => {
+        showToast('テキストをコピーしました');
+    });
+}
+
+// ===== 画像ダウンロード =====
+function downloadImage(dataUrl, filename) {
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = filename || `image_${Date.now()}.png`;
+    link.click();
+    showToast('画像をダウンロードしました');
+}
+
+function downloadAllImages(postId) {
+    const post = posts.find(p => p.id === postId);
+    if (!post || post.images.length === 0) return;
+    
+    post.images.forEach((img, index) => {
+        setTimeout(() => {
+            downloadImage(img.data, img.name || `image_${postId}_${index}.png`);
+        }, index * 200);
+    });
+}
+
+// ===== 投稿削除 =====
+function deletePost(postId) {
+    if (!confirm('この投稿を削除しますか?')) return;
+    
+    posts = posts.filter(p => p.id !== postId);
+    saveData();
+    renderTimeline();
+    showToast('投稿を削除しました');
+}
+
+// ===== 検索モーダル =====
+function openSearchModal() {
+    document.getElementById('searchModal').classList.add('active');
+    renderHashtagList();
+}
+
+function renderHashtagList() {
+    const hashtags = extractHashtags();
+    const list = document.getElementById('hashtagList');
+    
+    if (hashtags.length === 0) {
+        list.innerHTML = '<p style="text-align: center; color: #999;">ハッシュタグがありません</p>';
+        return;
+    }
+    
+    list.innerHTML = '';
+    hashtags.forEach(tag => {
+        const div = document.createElement('div');
+        div.className = 'hashtag-item';
+        if (currentFilter === tag) {
+            div.classList.add('active');
+        }
+        div.textContent = `${tag} (${countHashtag(tag)})`;
+        div.onclick = () => filterByHashtag(tag);
+        list.appendChild(div);
+    });
+}
+
+function extractHashtags() {
+    const tags = new Set();
+    posts.forEach(post => {
+        const matches = post.text.match(/#[^\s#]+/g);
+        if (matches) {
+            matches.forEach(tag => tags.add(tag));
+        }
+    });
+    return Array.from(tags).sort();
+}
+
+function countHashtag(tag) {
+    return posts.filter(post => post.text.includes(tag)).length;
+}
+
+function filterHashtags() {
+    const query = document.getElementById('hashtagSearch').value.toLowerCase();
+    const items = document.querySelectorAll('.hashtag-item');
+    
+    items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(query) ? 'block' : 'none';
+    });
+}
+
+function filterByHashtag(tag) {
+    currentFilter = tag;
+    renderTimeline();
+    document.getElementById('searchModal').classList.remove('active');
+    showToast(`${tag} で絞り込み中`);
+}
+
+function clearFilter() {
+    currentFilter = null;
+    renderTimeline();
+    document.getElementById('searchModal').classList.remove('active');
+    showToast('すべて表示');
+}
+
+// ===== 設定モーダル =====
+function openSettingsModal() {
+    document.getElementById('settingsModal').classList.add('active');
+}
+
+function handleIconChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        userIcon = event.target.result;
+        saveIcon();
+        updateUserIcon();
+        showToast('アイコンを変更しました');
+    };
+    reader.readAsDataURL(file);
+}
+
+function handleBackgroundChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        backgroundImage = event.target.result;
+        localStorage.setItem(STORAGE_KEYS.BACKGROUND, backgroundImage);
+        document.body.style.backgroundImage = `url(${backgroundImage})`;
+        showToast('背景を変更しました');
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearBackground() {
+    backgroundImage = null;
+    localStorage.removeItem(STORAGE_KEYS.BACKGROUND);
+    document.body.style.backgroundImage = '';
+    showToast('背景をクリアしました');
+}
+
+function handleThemeChange(e) {
+    const theme = e.target.value;
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem(STORAGE_KEYS.THEME, theme);
+    showToast('テーマを変更しました');
+}
+
+// ===== データエクスポート/インポート =====
+function exportData() {
+    const data = {
+        posts: posts,
+        icon: userIcon,
+        background: backgroundImage,
+        theme: localStorage.getItem(STORAGE_KEYS.THEME),
+        exportDate: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `memo_sns_backup_${Date.now()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    showToast('データをエクスポートしました');
+}
+
+function importData(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        try {
+            const data = JSON.parse(event.target.result);
+            
+            if (confirm('既存のデータを上書きしますか？\n（キャンセルで追加モード）')) {
+                posts = data.posts || [];
+            } else {
+                posts = [...posts, ...(data.posts || [])];
+            }
+            
+            if (data.icon) {
+                userIcon = data.icon;
+                saveIcon();
+                updateUserIcon();
+            }
+            
+            if (data.background) {
+                backgroundImage = data.background;
+                localStorage.setItem(STORAGE_KEYS.BACKGROUND, backgroundImage);
+                document.body.style.backgroundImage = `url(${backgroundImage})`;
+            }
+            
+            if (data.theme) {
+                document.body.setAttribute('data-theme', data.theme);
+                localStorage.setItem(STORAGE_KEYS.THEME, data.theme);
+                document.getElementById('themeSelect').value = data.theme;
+            }
+            
+            saveData();
+            renderTimeline();
+            showToast('データをインポートしました');
+        } catch (error) {
+            alert('データの読み込みに失敗しました');
+            console.error(error);
+        }
+    };
+    reader.readAsText(file);
+    
+    e.target.value = '';
+}
+
+function clearAllData() {
+    if (!confirm('本当にすべてのデータを削除しますか？\nこの操作は取り消せません。')) return;
+    
+    if (!confirm('最終確認: すべての投稿、設定が削除されます。')) return;
+    
+    posts = [];
+    localStorage.clear();
+    userIcon = createDefaultIcon();
+    saveIcon();
+    updateUserIcon();
+    document.body.style.backgroundImage = '';
+    renderTimeline();
+    showToast('すべてのデータを削除しました');
+}
+
+// ===== トースト通知 =====
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 24px;
+        z-index: 10000;
+        animation: fadeInOut 2s ease-in-out;
+    `;
+    
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+}
+
+// ===== CSS アニメーション追加 =====
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeInOut {
+        0%, 100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+        10%, 90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+`;
+document.head.appendChild(style);
