@@ -54,7 +54,7 @@ function loadDefaultIcon() {
         saveIcon();
         updateUserIcon();
     };
-    img.src = 'default-icon.png';
+    img.src = 'Default-icon.png';
 }
 
 // ===== イベントリスナー初期化 =====
