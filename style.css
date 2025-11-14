@@ -535,6 +535,23 @@ header h1 {
     max-width: 600px;
 }
 
+.help-welcome {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.help-welcome-icon {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+}
+
+.help-welcome h3 {
+    margin: 0;
+}
+
 .help-section {
     margin-bottom: 24px;
     padding-bottom: 20px;
