@@ -616,6 +616,60 @@ header h1 {
     max-width: 150px;
 }
 
+/* ===== モバイル用トリミングコントロール ===== */
+.mobile-crop-controls {
+    margin-bottom: 12px;
+    padding: 12px;
+    background: var(--theme-accent);
+    border-radius: 8px;
+}
+
+.crop-control-item {
+    margin-bottom: 12px;
+}
+
+.crop-control-item:last-child {
+    margin-bottom: 0;
+}
+
+.crop-control-item label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--theme-text);
+    font-size: 0.9rem;
+}
+
+#cropSizeSlider {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--theme-border);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+#cropSizeSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--theme-primary);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#cropSizeSlider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--theme-primary);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 /* ===== レスポンシブ ===== */
 @media (max-width: 480px) {
     .post-form-container {
