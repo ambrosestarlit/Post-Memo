@@ -17,7 +17,8 @@ const STORAGE_KEYS = {
     ICON: 'memoSNS_userIcon',
     BACKGROUND: 'memoSNS_background',
     THEME: 'memoSNS_theme',
-    BG_OPACITY: 'memoSNS_bgOpacity'
+    BG_OPACITY: 'memoSNS_bgOpacity',
+    BG_BORDER: 'memoSNS_bgBorder'
 };
 
 // ===== 初期読み込み =====
@@ -28,11 +29,33 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // デフォルトアイコンを設定
     if (!userIcon) {
+        loadDefaultIcon();
+    } else {
+        updateUserIcon();
+    }
+});
+
+// ===== デフォルトアイコン読み込み =====
+function loadDefaultIcon() {
+    const img = new Image();
+    img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 200;
+        canvas.height = 200;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, 200, 200);
+        userIcon = canvas.toDataURL();
+        saveIcon();
+        updateUserIcon();
+    };
+    img.onerror = () => {
+        // 画像読み込み失敗時は以前の方法でデフォルトアイコンを生成
         userIcon = createDefaultIcon();
         saveIcon();
-    }
-    updateUserIcon();
-});
+        updateUserIcon();
+    };
+    img.src = 'default-icon.png';
+}
 
 // ===== イベントリスナー初期化 =====
 function initializeEventListeners() {
@@ -73,12 +96,16 @@ function initializeEventListeners() {
     // 設定
     document.getElementById('iconInput').addEventListener('change', handleIconChange);
     document.getElementById('bgInput').addEventListener('change', handleBackgroundChange);
-    document.getElementById('clearBgBtn').addEventListener('click', clearBackground);
     document.getElementById('bgOpacityCheck').addEventListener('change', handleOpacityChange);
     document.getElementById('themeSelect').addEventListener('change', handleThemeChange);
     document.getElementById('exportBtn').addEventListener('click', exportData);
     document.getElementById('importInput').addEventListener('change', importData);
     document.getElementById('clearDataBtn').addEventListener('click', clearAllData);
+    
+    // 背景パターン選択
+    document.querySelectorAll('.bg-pattern-item').forEach(item => {
+        item.addEventListener('click', handlePatternSelect);
+    });
     
     // トリミング
     document.getElementById('cropConfirmBtn').addEventListener('click', confirmCrop);
@@ -145,7 +172,12 @@ function loadData() {
     const savedBg = localStorage.getItem(STORAGE_KEYS.BACKGROUND);
     if (savedBg) {
         backgroundImage = savedBg;
-        document.body.style.backgroundImage = `url(${savedBg})`;
+        applyBackground(savedBg);
+    }
+    
+    const savedBorder = localStorage.getItem(STORAGE_KEYS.BG_BORDER);
+    if (savedBorder === 'true') {
+        applyBorder();
     }
     
     const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
@@ -162,6 +194,8 @@ function loadData() {
             document.body.classList.add('bg-clear');
         }
     }
+    
+    updateActivePattern();
 }
 
 // ===== データ保存 =====
@@ -227,8 +261,8 @@ function createPost() {
         id: Date.now(),
         text: text,
         images: [...selectedImages],
-        timestamp: new Date().toISOString(),
-        icon: userIcon
+        timestamp: new Date().toISOString()
+        // iconは保存しない（常に現在のuserIconを使用）
     };
     
     posts.unshift(post);
@@ -284,7 +318,7 @@ function createPostElement(post) {
     else if (post.images.length > 2) imageGridClass = 'multiple';
     
     div.innerHTML = `
-        <img src="${post.icon || userIcon}" alt="アイコン" class="user-icon">
+        <img src="${userIcon}" alt="アイコン" class="user-icon">
         <div class="post-content">
             <div class="post-header">
                 <div class="post-time">${timeStr}</div>
@@ -503,15 +537,96 @@ function showCropArea(img) {
     // 画像を描画
     ctx.drawImage(img, 0, 0, width, height);
     
-    // トリミング領域を表示
-    cropArea.style.display = 'block';
+    // デバイス判定
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
     
-    // 初期選択範囲（中央の正方形）
+    if (isMobile) {
+        // スマホ用：スライダーとタップ移動UI
+        showMobileCropUI(width, height);
+    } else {
+        // PC用：ドラッグ選択UI
+        showDesktopCropUI(width, height);
+    }
+    
+    cropArea.style.display = 'block';
+}
+
+function showDesktopCropUI(width, height) {
+    // 既存のドラッグ方式
     const size = Math.min(width, height) * 0.8;
     cropStartX = (width - size) / 2;
     cropStartY = (height - size) / 2;
     cropEndX = cropStartX + size;
     cropEndY = cropStartY + size;
+    
+    const canvas = document.getElementById('iconCropCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.style.cursor = 'crosshair';
+    drawCropRect(ctx, width, height);
+}
+
+function showMobileCropUI(width, height) {
+    const cropArea = document.getElementById('iconCropArea');
+    const canvas = document.getElementById('iconCropCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // 初期サイズと位置
+    const initialSize = Math.min(width, height) * 0.6;
+    cropStartX = (width - initialSize) / 2;
+    cropStartY = (height - initialSize) / 2;
+    cropEndX = cropStartX + initialSize;
+    cropEndY = cropStartY + initialSize;
+    
+    // スマホ用コントロールを追加
+    const mobileControls = document.createElement('div');
+    mobileControls.className = 'mobile-crop-controls';
+    mobileControls.innerHTML = `
+        <div class="crop-control-item">
+            <label>サイズ</label>
+            <input type="range" id="cropSizeSlider" min="50" max="${Math.min(width, height)}" value="${initialSize}" step="1">
+        </div>
+        <div class="crop-control-item">
+            <label>位置を調整（タップで移動）</label>
+        </div>
+    `;
+    
+    // 既存のモバイルコントロールを削除
+    const existingControls = cropArea.querySelector('.mobile-crop-controls');
+    if (existingControls) {
+        existingControls.remove();
+    }
+    
+    cropArea.insertBefore(mobileControls, cropArea.querySelector('.crop-controls'));
+    
+    // スライダーイベント
+    document.getElementById('cropSizeSlider').addEventListener('input', (e) => {
+        const size = parseFloat(e.target.value);
+        const centerX = (cropStartX + cropEndX) / 2;
+        const centerY = (cropStartY + cropEndY) / 2;
+        
+        cropStartX = Math.max(0, Math.min(width - size, centerX - size / 2));
+        cropStartY = Math.max(0, Math.min(height - size, centerY - size / 2));
+        cropEndX = cropStartX + size;
+        cropEndY = cropStartY + size;
+        
+        drawCropRect(ctx, width, height);
+    });
+    
+    // タップで枠を移動
+    canvas.style.cursor = 'pointer';
+    canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = (e.clientX - rect.left) * (width / rect.width);
+        const clickY = (e.clientY - rect.top) * (height / rect.height);
+        
+        const size = cropEndX - cropStartX;
+        cropStartX = Math.max(0, Math.min(width - size, clickX - size / 2));
+        cropStartY = Math.max(0, Math.min(height - size, clickY - size / 2));
+        cropEndX = cropStartX + size;
+        cropEndY = cropStartY + size;
+        
+        drawCropRect(ctx, width, height);
+    });
     
     drawCropRect(ctx, width, height);
 }
@@ -641,16 +756,27 @@ function confirmCrop() {
     userIcon = resultCanvas.toDataURL();
     saveIcon();
     updateUserIcon();
+    renderTimeline(); // タイムラインを再描画して全投稿のアイコンを更新
     
     // トリミング領域を非表示
-    document.getElementById('iconCropArea').style.display = 'none';
+    const cropArea = document.getElementById('iconCropArea');
+    const mobileControls = cropArea.querySelector('.mobile-crop-controls');
+    if (mobileControls) {
+        mobileControls.remove();
+    }
+    cropArea.style.display = 'none';
     document.getElementById('iconInput').value = '';
     
     showToast('アイコンを変更しました');
 }
 
 function cancelCrop() {
-    document.getElementById('iconCropArea').style.display = 'none';
+    const cropArea = document.getElementById('iconCropArea');
+    const mobileControls = cropArea.querySelector('.mobile-crop-controls');
+    if (mobileControls) {
+        mobileControls.remove();
+    }
+    cropArea.style.display = 'none';
     document.getElementById('iconInput').value = '';
 }
 
@@ -662,7 +788,10 @@ function handleBackgroundChange(e) {
     reader.onload = (event) => {
         backgroundImage = event.target.result;
         localStorage.setItem(STORAGE_KEYS.BACKGROUND, backgroundImage);
-        document.body.style.backgroundImage = `url(${backgroundImage})`;
+        localStorage.removeItem(STORAGE_KEYS.BG_BORDER);
+        applyBackground(backgroundImage);
+        removeBorder();
+        updateActivePattern();
         showToast('背景を変更しました');
     };
     reader.readAsDataURL(file);
@@ -673,6 +802,77 @@ function clearBackground() {
     localStorage.removeItem(STORAGE_KEYS.BACKGROUND);
     document.body.style.backgroundImage = '';
     showToast('背景をクリアしました');
+}
+
+function handlePatternSelect(e) {
+    const item = e.currentTarget;
+    const bgValue = item.getAttribute('data-bg');
+    
+    if (bgValue === 'custom') {
+        // カスタム画像選択
+        document.getElementById('bgInput').click();
+    } else if (bgValue === 'none') {
+        // 背景なし
+        backgroundImage = null;
+        localStorage.removeItem(STORAGE_KEYS.BACKGROUND);
+        localStorage.removeItem(STORAGE_KEYS.BG_BORDER);
+        document.body.style.backgroundImage = '';
+        removeBorder();
+        updateActivePattern();
+        showToast('背景をクリアしました');
+    } else if (bgValue === 'bg-border.png') {
+        // ボーダーパターン（テーマ背景に重ねる）
+        backgroundImage = bgValue;
+        localStorage.setItem(STORAGE_KEYS.BACKGROUND, bgValue);
+        localStorage.setItem(STORAGE_KEYS.BG_BORDER, 'true');
+        applyBorder();
+        updateActivePattern();
+        showToast('ボーダー背景を設定しました');
+    } else {
+        // プリセット背景
+        backgroundImage = bgValue;
+        localStorage.setItem(STORAGE_KEYS.BACKGROUND, bgValue);
+        localStorage.removeItem(STORAGE_KEYS.BG_BORDER);
+        applyBackground(bgValue);
+        removeBorder();
+        updateActivePattern();
+        showToast('背景を変更しました');
+    }
+}
+
+function applyBackground(bgUrl) {
+    document.body.style.backgroundImage = `url(${bgUrl})`;
+    document.body.style.backgroundSize = 'auto';
+    document.body.style.backgroundRepeat = 'repeat';
+}
+
+function applyBorder() {
+    document.body.style.backgroundImage = `url(bg-border.png)`;
+    document.body.style.backgroundSize = 'auto';
+    document.body.style.backgroundRepeat = 'repeat';
+}
+
+function removeBorder() {
+    // ボーダークラスがあれば削除
+    localStorage.removeItem(STORAGE_KEYS.BG_BORDER);
+}
+
+function updateActivePattern() {
+    document.querySelectorAll('.bg-pattern-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    const savedBg = localStorage.getItem(STORAGE_KEYS.BACKGROUND);
+    if (!savedBg) {
+        document.querySelector('[data-bg="none"]').classList.add('active');
+    } else {
+        const activeItem = document.querySelector(`[data-bg="${savedBg}"]`);
+        if (activeItem) {
+            activeItem.classList.add('active');
+        } else {
+            document.querySelector('[data-bg="custom"]').classList.add('active');
+        }
+    }
 }
 
 function handleOpacityChange(e) {
@@ -702,6 +902,7 @@ function exportData() {
         background: backgroundImage,
         theme: localStorage.getItem(STORAGE_KEYS.THEME),
         bgOpacity: localStorage.getItem(STORAGE_KEYS.BG_OPACITY),
+        bgBorder: localStorage.getItem(STORAGE_KEYS.BG_BORDER),
         exportDate: new Date().toISOString()
     };
     
@@ -740,7 +941,14 @@ function importData(e) {
             if (data.background) {
                 backgroundImage = data.background;
                 localStorage.setItem(STORAGE_KEYS.BACKGROUND, backgroundImage);
-                document.body.style.backgroundImage = `url(${backgroundImage})`;
+                applyBackground(backgroundImage);
+            }
+            
+            if (data.bgBorder) {
+                localStorage.setItem(STORAGE_KEYS.BG_BORDER, data.bgBorder);
+                if (data.bgBorder === 'true') {
+                    applyBorder();
+                }
             }
             
             if (data.theme) {
@@ -759,6 +967,8 @@ function importData(e) {
                     document.body.classList.remove('bg-clear');
                 }
             }
+            
+            updateActivePattern();
             
             saveData();
             renderTimeline();
