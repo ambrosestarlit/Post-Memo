@@ -325,13 +325,13 @@ function createPostElement(post) {
             ` : ''}
             <div class="post-actions-bottom">
                 ${post.text ? `<button class="action-btn" onclick="copyText(\`${escapeText(post.text)}\`)">
-                    📋 コピー
+                    <img src="icon-copy.png" alt="コピー" class="btn-icon-small"> コピー
                 </button>` : ''}
                 ${post.images.length > 0 ? `<button class="action-btn" onclick="downloadAllImages(${post.id})">
-                    💾 画像保存
+                    <img src="icon-download.png" alt="保存" class="btn-icon-small"> 画像保存
                 </button>` : ''}
                 <button class="action-btn" onclick="deletePost(${post.id})" style="background: #dc3545;">
-                    🗑️ 削除
+                    <img src="icon-delete.png" alt="削除" class="btn-icon-small"> 削除
                 </button>
             </div>
         </div>
