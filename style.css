@@ -1,7 +1,7 @@
 /* ===== フォント定義 ===== */
 @font-face {
-    font-family: 'Oshigo';
-    src: url('oshigo.otf') format('opentype');
+    font-family: 'YDW Banana Slip';
+    src: url('YDWbananaslipplus.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
 }
@@ -149,7 +149,7 @@ header {
 header h1 {
     font-size: 1.3rem;
     font-weight: bold;
-    font-family: 'Oshigo', sans-serif;
+    font-family: 'YDW Banana Slip', sans-serif;
 }
 
 .app-logo {
@@ -161,7 +161,7 @@ header h1 {
 /* タイトル・見出し用フォント */
 h1, h2, h3, h4, h5, h6,
 .modal-header h2 {
-    font-family: 'Oshigo', sans-serif;
+    font-family: 'YDW Banana Slip', sans-serif;
 }
 
 .header-actions {
