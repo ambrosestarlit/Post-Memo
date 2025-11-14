@@ -676,6 +676,15 @@ code {
 .modal-header h2 {
     font-size: 1.3rem;
     color: var(--theme-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-title-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
 }
 
 .close-btn {
