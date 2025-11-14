@@ -1,63 +1,78 @@
+/* ===== フォント定義 ===== */
+@font-face {
+    font-family: 'Buildings';
+    src: url('Buildingsandundertherailwaytracksfree_ver.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'JK Maru Gothic';
+    src: url('JK-Maru-Gothic-M.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 /* ===== 基本設定 ===== */
 :root {
     /* チョコレートテーマ */
-    --theme-bg: #F5E6D3;
-    --theme-primary: #8B4513;
-    --theme-secondary: #D2691E;
-    --theme-accent: #DEB887;
-    --theme-text: #4A2511;
-    --theme-text-light: #6B3A1E;
-    --theme-border: #C19A6B;
-    --theme-card: #FFF8F0;
-    --theme-hover: #A0522D;
+    --theme-bg: #FFF5E9;
+    --theme-primary: #C19A6B;
+    --theme-secondary: #E6C4A0;
+    --theme-accent: #F5E6D3;
+    --theme-text: #6B5744;
+    --theme-text-light: #8B7355;
+    --theme-border: #E0D0BB;
+    --theme-card: #FFFBF5;
+    --theme-hover: #B8956A;
 }
 
 [data-theme="sakura"] {
-    --theme-bg: #FFF0F5;
-    --theme-primary: #FF69B4;
-    --theme-secondary: #FFB6C1;
-    --theme-accent: #FFC0CB;
-    --theme-text: #8B4578;
-    --theme-text-light: #C71585;
-    --theme-border: #FFB6D9;
-    --theme-card: #FFFAFD;
-    --theme-hover: #FF1493;
+    --theme-bg: #FFF5F8;
+    --theme-primary: #FFB3D9;
+    --theme-secondary: #FFC9E3;
+    --theme-accent: #FFE0EE;
+    --theme-text: #996B7D;
+    --theme-text-light: #B88FA0;
+    --theme-border: #FFDAE8;
+    --theme-card: #FFFAFC;
+    --theme-hover: #FFA0D0;
 }
 
 [data-theme="ocean"] {
-    --theme-bg: #E0F7FA;
-    --theme-primary: #0288D1;
-    --theme-secondary: #4FC3F7;
-    --theme-accent: #81D4FA;
-    --theme-text: #01579B;
-    --theme-text-light: #0277BD;
-    --theme-border: #4DD0E1;
-    --theme-card: #F1FBFD;
-    --theme-hover: #0277BD;
+    --theme-bg: #F0F8FF;
+    --theme-primary: #87CEEB;
+    --theme-secondary: #ADD8E6;
+    --theme-accent: #D0E8F2;
+    --theme-text: #4A6B7C;
+    --theme-text-light: #6B8FA0;
+    --theme-border: #B8DAEB;
+    --theme-card: #FAFCFE;
+    --theme-hover: #70C0E0;
 }
 
 [data-theme="forest"] {
-    --theme-bg: #E8F5E9;
-    --theme-primary: #388E3C;
-    --theme-secondary: #66BB6A;
-    --theme-accent: #81C784;
-    --theme-text: #1B5E20;
-    --theme-text-light: #2E7D32;
-    --theme-border: #A5D6A7;
-    --theme-card: #F1F8F1;
-    --theme-hover: #2E7D32;
+    --theme-bg: #F5FFF5;
+    --theme-primary: #90C695;
+    --theme-secondary: #AED9B3;
+    --theme-accent: #CFE8D3;
+    --theme-text: #4A6B4F;
+    --theme-text-light: #6B8F70;
+    --theme-border: #B8DABD;
+    --theme-card: #FAFEFB;
+    --theme-hover: #7AB87F;
 }
 
 [data-theme="sunset"] {
-    --theme-bg: #FFF3E0;
-    --theme-primary: #F57C00;
-    --theme-secondary: #FFB74D;
-    --theme-accent: #FFCC80;
-    --theme-text: #E65100;
-    --theme-text-light: #F57C00;
-    --theme-border: #FFD54F;
-    --theme-card: #FFFAF5;
-    --theme-hover: #EF6C00;
+    --theme-bg: #FFF8F0;
+    --theme-primary: #FFB380;
+    --theme-secondary: #FFC9A0;
+    --theme-accent: #FFE0C7;
+    --theme-text: #996B4F;
+    --theme-text-light: #B88F70;
+    --theme-border: #FFD4B0;
+    --theme-card: #FFFCF8;
+    --theme-hover: #FFA366;
 }
 
 * {
@@ -67,7 +82,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+    font-family: 'JK Maru Gothic', -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
     background-color: var(--theme-bg);
     color: var(--theme-text);
     line-height: 1.6;
@@ -134,12 +149,19 @@ header {
 header h1 {
     font-size: 1.3rem;
     font-weight: bold;
+    font-family: 'Buildings', sans-serif;
 }
 
 .app-logo {
     height: 40px;
     width: auto;
     object-fit: contain;
+}
+
+/* タイトル・見出し用フォント */
+h1, h2, h3, h4, h5, h6,
+.modal-header h2 {
+    font-family: 'Buildings', sans-serif;
 }
 
 .header-actions {
