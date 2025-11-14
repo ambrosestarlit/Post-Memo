@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Memo SNS">
-    <title>Memo SNS</title>
+    <meta name="apple-mobile-web-app-title" content="Memonto">
+    <title>Memonto</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -16,7 +16,7 @@
         <!-- ヘッダー -->
         <header>
             <div class="header-content">
-                <h1>📝 Memo SNS</h1>
+                <img src="logo.png" alt="Memonto" class="app-logo">
                 <div class="header-actions">
                     <button id="searchBtn" class="icon-btn" title="検索">🔍</button>
                     <button id="settingsBtn" class="icon-btn" title="設定">⚙️</button>
@@ -69,11 +69,22 @@
                     <div class="setting-item">
                         <label>アイコン変更</label>
                         <input type="file" id="iconInput" accept="image/*">
+                        <div id="iconCropArea" class="crop-area" style="display: none;">
+                            <canvas id="iconCropCanvas"></canvas>
+                            <div class="crop-controls">
+                                <button id="cropConfirmBtn" class="btn-primary">トリミング確定</button>
+                                <button id="cropCancelBtn" class="btn-secondary">キャンセル</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="setting-item">
                         <label>背景画像</label>
                         <input type="file" id="bgInput" accept="image/*">
                         <button id="clearBgBtn" class="btn-secondary">背景をクリア</button>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="bgOpacityCheck" checked>
+                            <label for="bgOpacityCheck">背景を薄く表示</label>
+                        </div>
                     </div>
                     <div class="setting-item">
                         <label>カラーテーマ</label>
