@@ -575,7 +575,7 @@ header h1 {
 
 .help-item {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
     margin: 12px 0;
     padding: 12px;
@@ -682,8 +682,8 @@ code {
 }
 
 .modal-title-icon {
-    width: 32px;
-    height: 32px;
+    width: 64px;
+    height: 64px;
     object-fit: contain;
 }
 
