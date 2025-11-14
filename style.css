@@ -76,6 +76,7 @@ body {
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
+    background-repeat: no-repeat;
 }
 
 body::before {
@@ -87,6 +88,11 @@ body::before {
     height: 100%;
     background-color: rgba(255, 255, 255, 0.85);
     z-index: -1;
+    pointer-events: none;
+}
+
+body.bg-clear::before {
+    background-color: rgba(255, 255, 255, 0);
 }
 
 /* ===== ヘッダー ===== */
@@ -111,6 +117,12 @@ header {
 header h1 {
     font-size: 1.3rem;
     font-weight: bold;
+}
+
+.app-logo {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
 }
 
 .header-actions {
@@ -139,12 +151,10 @@ header h1 {
 .post-form-container {
     max-width: 600px;
     margin: 16px auto;
-    background: var(--theme-card);
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 0 16px;
     display: flex;
     gap: 12px;
+    align-items: flex-start;
 }
 
 .user-icon-area {
@@ -161,6 +171,10 @@ header h1 {
 
 .post-input-area {
     flex: 1;
+    background: var(--theme-card);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -281,14 +295,25 @@ header h1 {
 }
 
 .post-item {
+    padding: 0 16px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    animation: slideIn 0.3s ease-out;
+}
+
+.post-item .user-icon {
+    flex-shrink: 0;
+}
+
+.post-item .post-content {
+    flex: 1;
     background: var(--theme-card);
     border-radius: 16px;
     padding: 16px;
-    margin-bottom: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    display: flex;
-    gap: 12px;
-    animation: slideIn 0.3s ease-out;
+    position: relative;
 }
 
 @keyframes slideIn {
@@ -300,11 +325,6 @@ header h1 {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-.post-content {
-    flex: 1;
-    position: relative;
 }
 
 .post-header {
@@ -546,6 +566,54 @@ header h1 {
     border-radius: 8px;
     font-size: 1rem;
     background: white;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.checkbox-item label {
+    margin: 0;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+/* ===== トリミング領域 ===== */
+.crop-area {
+    margin-top: 12px;
+    padding: 12px;
+    border: 2px dashed var(--theme-border);
+    border-radius: 8px;
+    text-align: center;
+}
+
+#iconCropCanvas {
+    max-width: 100%;
+    border: 2px solid var(--theme-primary);
+    border-radius: 8px;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+.crop-controls {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.crop-controls button {
+    flex: 1;
+    max-width: 150px;
 }
 
 /* ===== レスポンシブ ===== */
