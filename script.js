@@ -70,6 +70,9 @@ function initializeEventListeners() {
     // 検索ボタン
     document.getElementById('searchBtn').addEventListener('click', openSearchModal);
     
+    // 使い方ボタン
+    document.getElementById('helpBtn').addEventListener('click', openHelpModal);
+    
     // 設定ボタン
     document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
     
@@ -324,14 +327,14 @@ function createPostElement(post) {
                 </div>
             ` : ''}
             <div class="post-actions-bottom">
-                ${post.text ? `<button class="action-btn" onclick="copyText(\`${escapeText(post.text)}\`)">
-                    <img src="icon-copy.png" alt="コピー" class="btn-icon-small"> コピー
+                ${post.text ? `<button class="action-btn-icon" onclick="copyText(\`${escapeText(post.text)}\`)" title="コピー">
+                    <img src="icon-copy.png" alt="コピー">
                 </button>` : ''}
-                ${post.images.length > 0 ? `<button class="action-btn" onclick="downloadAllImages(${post.id})">
-                    <img src="icon-download.png" alt="保存" class="btn-icon-small"> 画像保存
+                ${post.images.length > 0 ? `<button class="action-btn-icon" onclick="downloadAllImages(${post.id})" title="画像保存">
+                    <img src="icon-download.png" alt="保存">
                 </button>` : ''}
-                <button class="action-btn" onclick="deletePost(${post.id})" style="background: #dc3545;">
-                    <img src="icon-delete.png" alt="削除" class="btn-icon-small"> 削除
+                <button class="action-btn-icon action-btn-delete" onclick="deletePost(${post.id})" title="削除">
+                    <img src="icon-delete.png" alt="削除">
                 </button>
             </div>
         </div>
@@ -419,6 +422,11 @@ function deletePost(postId) {
 function openSearchModal() {
     document.getElementById('searchModal').classList.add('active');
     renderHashtagList();
+}
+
+// ===== 使い方モーダル =====
+function openHelpModal() {
+    document.getElementById('helpModal').classList.add('active');
 }
 
 function renderHashtagList() {
