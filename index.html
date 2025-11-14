@@ -18,6 +18,9 @@
             <div class="header-content">
                 <img src="logo.png" alt="Memonto" class="app-logo">
                 <div class="header-actions">
+                    <button id="helpBtn" class="icon-btn" title="使い方">
+                        <img src="icon-help.png" alt="使い方" class="btn-icon">
+                    </button>
                     <button id="searchBtn" class="icon-btn" title="検索">
                         <img src="icon-search.png" alt="検索" class="btn-icon">
                     </button>
@@ -37,8 +40,8 @@
                 <textarea id="postText" placeholder="なにをつぶやく？" rows="3"></textarea>
                 <div class="post-actions">
                     <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
-                    <label for="imageInput" class="btn-secondary">
-                        <img src="icon-camera.png" alt="画像" class="btn-icon-inline"> 画像
+                    <label for="imageInput" class="btn-icon-only" title="画像を追加">
+                        <img src="icon-camera.png" alt="画像">
                     </label>
                     <button id="postBtn" class="btn-primary">投稿</button>
                 </div>
@@ -66,6 +69,120 @@
 
         <!-- 設定モーダル -->
         <div id="settingsModal" class="modal">
+
+        <!-- 使い方モーダル -->
+        <div id="helpModal" class="modal">
+            <div class="modal-content modal-help">
+                <div class="modal-header">
+                    <h2>📖 使い方ガイド</h2>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="help-section">
+                        <h3>🐻 Memontoへようこそ！</h3>
+                        <p>あなたの瞬間を記録するメモアプリです。思いついたこと、画像、URLをSNS風に保存できます。</p>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>✏️ 投稿方法</h3>
+                        <div class="help-item">
+                            <div class="help-icon">
+                                <img src="icon-camera.png" alt="画像">
+                            </div>
+                            <div class="help-text">
+                                <strong>画像ボタン</strong>
+                                <p>写真や画像を追加できます。複数枚同時に選択可能です。</p>
+                            </div>
+                        </div>
+                        <div class="help-item">
+                            <button class="btn-primary" disabled>投稿</button>
+                            <div class="help-text">
+                                <strong>投稿ボタン</strong>
+                                <p>テキストや画像を投稿します。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>📝 投稿の操作</h3>
+                        <div class="help-item">
+                            <div class="help-icon">
+                                <img src="icon-copy.png" alt="コピー">
+                            </div>
+                            <div class="help-text">
+                                <strong>コピーボタン</strong>
+                                <p>投稿のテキストをクリップボードにコピーします。</p>
+                            </div>
+                        </div>
+                        <div class="help-item">
+                            <div class="help-icon">
+                                <img src="icon-download.png" alt="ダウンロード">
+                            </div>
+                            <div class="help-text">
+                                <strong>画像保存ボタン</strong>
+                                <p>投稿の画像をすべてダウンロードします。</p>
+                            </div>
+                        </div>
+                        <div class="help-item">
+                            <div class="help-icon">
+                                <img src="icon-delete.png" alt="削除">
+                            </div>
+                            <div class="help-text">
+                                <strong>削除ボタン</strong>
+                                <p>投稿を削除します。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>🔧 機能ボタン</h3>
+                        <div class="help-item">
+                            <div class="help-icon">
+                                <img src="icon-help.png" alt="ヘルプ">
+                            </div>
+                            <div class="help-text">
+                                <strong>使い方ボタン</strong>
+                                <p>このガイドを表示します。</p>
+                            </div>
+                        </div>
+                        <div class="help-item">
+                            <div class="help-icon">
+                                <img src="icon-search.png" alt="検索">
+                            </div>
+                            <div class="help-text">
+                                <strong>検索ボタン</strong>
+                                <p>ハッシュタグで投稿を絞り込みます。</p>
+                            </div>
+                        </div>
+                        <div class="help-item">
+                            <div class="help-icon">
+                                <img src="icon-settings.png" alt="設定">
+                            </div>
+                            <div class="help-text">
+                                <strong>設定ボタン</strong>
+                                <p>アイコン、背景、テーマなどをカスタマイズできます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>🏷️ ハッシュタグ</h3>
+                        <p><code>#タグ名</code> のように # をつけると、投稿をカテゴリ分けできます。</p>
+                        <p class="help-example">例: 今日のランチ美味しかった！ <span class="hashtag">#グルメ</span> <span class="hashtag">#ラーメン</span></p>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>🔗 URL自動リンク</h3>
+                        <p>https:// で始まるURLを入力すると、自動的にリンクになります。</p>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>💾 データ管理</h3>
+                        <p>すべてのデータはブラウザに保存されます。設定からエクスポート/インポートでバックアップできます。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>⚙️ 設定</h2>
