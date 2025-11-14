@@ -79,9 +79,40 @@
                     </div>
                     <div class="setting-item">
                         <label>背景画像</label>
-                        <input type="file" id="bgInput" accept="image/*">
-                        <button id="clearBgBtn" class="btn-secondary">背景をクリア</button>
-                        <div class="checkbox-item">
+                        <div class="bg-pattern-grid">
+                            <div class="bg-pattern-item" data-bg="none">
+                                <div class="bg-pattern-preview" style="background: var(--theme-bg);"></div>
+                                <span>なし</span>
+                            </div>
+                            <div class="bg-pattern-item" data-bg="bg-check.png">
+                                <div class="bg-pattern-preview" style="background: url('bg-check.png'); background-size: cover;"></div>
+                                <span>チェック柄</span>
+                            </div>
+                            <div class="bg-pattern-item" data-bg="bg-cherry.png">
+                                <div class="bg-pattern-preview" style="background: url('bg-cherry.png'); background-size: cover;"></div>
+                                <span>さくらんぼ</span>
+                            </div>
+                            <div class="bg-pattern-item" data-bg="bg-sakura.png">
+                                <div class="bg-pattern-preview" style="background: url('bg-sakura.png'); background-size: cover;"></div>
+                                <span>さくら</span>
+                            </div>
+                            <div class="bg-pattern-item" data-bg="bg-kinngyo.png">
+                                <div class="bg-pattern-preview" style="background: url('bg-kinngyo.png'); background-size: cover;"></div>
+                                <span>きんぎょ</span>
+                            </div>
+                            <div class="bg-pattern-item" data-bg="bg-border.png">
+                                <div class="bg-pattern-preview bg-border-preview"></div>
+                                <span>ボーダー</span>
+                            </div>
+                            <div class="bg-pattern-item" data-bg="custom">
+                                <div class="bg-pattern-preview" style="background: linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc); background-size: 20px 20px; background-position: 0 0, 10px 10px;">
+                                    <span style="font-size: 2rem;">+</span>
+                                </div>
+                                <span>カスタム</span>
+                            </div>
+                        </div>
+                        <input type="file" id="bgInput" accept="image/*" style="display: none;">
+                        <div class="checkbox-item" style="margin-top: 12px;">
                             <input type="checkbox" id="bgOpacityCheck" checked>
                             <label for="bgOpacityCheck">背景を薄く表示</label>
                         </div>
