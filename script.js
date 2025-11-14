@@ -4,13 +4,20 @@ let currentFilter = null;
 let selectedImages = [];
 let userIcon = null;
 let backgroundImage = null;
+let cropImage = null;
+let cropStartX = 0;
+let cropStartY = 0;
+let cropEndX = 0;
+let cropEndY = 0;
+let isDragging = false;
 
 // LocalStorageキー
 const STORAGE_KEYS = {
     POSTS: 'memoSNS_posts',
     ICON: 'memoSNS_userIcon',
     BACKGROUND: 'memoSNS_background',
-    THEME: 'memoSNS_theme'
+    THEME: 'memoSNS_theme',
+    BG_OPACITY: 'memoSNS_bgOpacity'
 };
 
 // ===== 初期読み込み =====
@@ -35,13 +42,7 @@ function initializeEventListeners() {
     // 画像選択
     document.getElementById('imageInput').addEventListener('change', handleImageSelect);
     
-    // Enter キーで投稿 (Shift+Enter で改行)
-    document.getElementById('postText').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            createPost();
-        }
-    });
+    // Enterキーでの送信は無効（誤送信防止）
     
     // 検索ボタン
     document.getElementById('searchBtn').addEventListener('click', openSearchModal);
@@ -73,10 +74,23 @@ function initializeEventListeners() {
     document.getElementById('iconInput').addEventListener('change', handleIconChange);
     document.getElementById('bgInput').addEventListener('change', handleBackgroundChange);
     document.getElementById('clearBgBtn').addEventListener('click', clearBackground);
+    document.getElementById('bgOpacityCheck').addEventListener('change', handleOpacityChange);
     document.getElementById('themeSelect').addEventListener('change', handleThemeChange);
     document.getElementById('exportBtn').addEventListener('click', exportData);
     document.getElementById('importInput').addEventListener('change', importData);
     document.getElementById('clearDataBtn').addEventListener('click', clearAllData);
+    
+    // トリミング
+    document.getElementById('cropConfirmBtn').addEventListener('click', confirmCrop);
+    document.getElementById('cropCancelBtn').addEventListener('click', cancelCrop);
+    
+    const canvas = document.getElementById('iconCropCanvas');
+    canvas.addEventListener('mousedown', startCrop);
+    canvas.addEventListener('mousemove', moveCrop);
+    canvas.addEventListener('mouseup', endCrop);
+    canvas.addEventListener('touchstart', handleTouchStart);
+    canvas.addEventListener('touchmove', handleTouchMove);
+    canvas.addEventListener('touchend', endCrop);
 }
 
 // ===== デフォルトアイコン生成 =====
@@ -138,6 +152,15 @@ function loadData() {
     if (savedTheme) {
         document.body.setAttribute('data-theme', savedTheme);
         document.getElementById('themeSelect').value = savedTheme;
+    }
+    
+    const savedOpacity = localStorage.getItem(STORAGE_KEYS.BG_OPACITY);
+    if (savedOpacity !== null) {
+        const isOpaque = savedOpacity === 'true';
+        document.getElementById('bgOpacityCheck').checked = !isOpaque;
+        if (isOpaque) {
+            document.body.classList.add('bg-clear');
+        }
     }
 }
 
@@ -444,12 +467,191 @@ function handleIconChange(e) {
     
     const reader = new FileReader();
     reader.onload = (event) => {
-        userIcon = event.target.result;
-        saveIcon();
-        updateUserIcon();
-        showToast('アイコンを変更しました');
+        const img = new Image();
+        img.onload = () => {
+            cropImage = img;
+            showCropArea(img);
+        };
+        img.src = event.target.result;
     };
     reader.readAsDataURL(file);
+}
+
+function showCropArea(img) {
+    const cropArea = document.getElementById('iconCropArea');
+    const canvas = document.getElementById('iconCropCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // キャンバスサイズを設定（最大400px）
+    const maxSize = 400;
+    let width = img.width;
+    let height = img.height;
+    
+    if (width > maxSize || height > maxSize) {
+        if (width > height) {
+            height = (height / width) * maxSize;
+            width = maxSize;
+        } else {
+            width = (width / height) * maxSize;
+            height = maxSize;
+        }
+    }
+    
+    canvas.width = width;
+    canvas.height = height;
+    
+    // 画像を描画
+    ctx.drawImage(img, 0, 0, width, height);
+    
+    // トリミング領域を表示
+    cropArea.style.display = 'block';
+    
+    // 初期選択範囲（中央の正方形）
+    const size = Math.min(width, height) * 0.8;
+    cropStartX = (width - size) / 2;
+    cropStartY = (height - size) / 2;
+    cropEndX = cropStartX + size;
+    cropEndY = cropStartY + size;
+    
+    drawCropRect(ctx, width, height);
+}
+
+function drawCropRect(ctx, width, height) {
+    // 元の画像を再描画
+    ctx.drawImage(cropImage, 0, 0, width, height);
+    
+    // 暗いオーバーレイ
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, width, height);
+    
+    // トリミング領域をクリア（正方形に強制）
+    const x = Math.min(cropStartX, cropEndX);
+    const y = Math.min(cropStartY, cropEndY);
+    const w = Math.abs(cropEndX - cropStartX);
+    const h = Math.abs(cropEndY - cropStartY);
+    const size = Math.min(w, h);
+    
+    ctx.clearRect(x, y, size, size);
+    ctx.drawImage(cropImage, 
+        x * (cropImage.width / width), 
+        y * (cropImage.height / height), 
+        size * (cropImage.width / width), 
+        size * (cropImage.height / height),
+        x, y, size, size
+    );
+    
+    // 枠線
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, size, size);
+    
+    // グリッド線
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = 1;
+    for (let i = 1; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + size * i / 3, y);
+        ctx.lineTo(x + size * i / 3, y + size);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(x, y + size * i / 3);
+        ctx.lineTo(x + size, y + size * i / 3);
+        ctx.stroke();
+    }
+}
+
+function startCrop(e) {
+    const canvas = document.getElementById('iconCropCanvas');
+    const rect = canvas.getBoundingClientRect();
+    cropStartX = e.clientX - rect.left;
+    cropStartY = e.clientY - rect.top;
+    isDragging = true;
+}
+
+function moveCrop(e) {
+    if (!isDragging) return;
+    
+    const canvas = document.getElementById('iconCropCanvas');
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    
+    cropEndX = e.clientX - rect.left;
+    cropEndY = e.clientY - rect.top;
+    
+    drawCropRect(ctx, canvas.width, canvas.height);
+}
+
+function endCrop(e) {
+    isDragging = false;
+}
+
+function handleTouchStart(e) {
+    e.preventDefault();
+    const canvas = document.getElementById('iconCropCanvas');
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    cropStartX = touch.clientX - rect.left;
+    cropStartY = touch.clientY - rect.top;
+    isDragging = true;
+}
+
+function handleTouchMove(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    
+    const canvas = document.getElementById('iconCropCanvas');
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    
+    cropEndX = touch.clientX - rect.left;
+    cropEndY = touch.clientY - rect.top;
+    
+    drawCropRect(ctx, canvas.width, canvas.height);
+}
+
+function confirmCrop() {
+    const canvas = document.getElementById('iconCropCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // トリミング範囲を計算（正方形）
+    const x = Math.min(cropStartX, cropEndX);
+    const y = Math.min(cropStartY, cropEndY);
+    const w = Math.abs(cropEndX - cropStartX);
+    const h = Math.abs(cropEndY - cropStartY);
+    const size = Math.min(w, h);
+    
+    // 元の画像のスケールを考慮
+    const scaleX = cropImage.width / canvas.width;
+    const scaleY = cropImage.height / canvas.height;
+    
+    // 新しいキャンバスにトリミング結果を描画
+    const resultCanvas = document.createElement('canvas');
+    resultCanvas.width = 200;
+    resultCanvas.height = 200;
+    const resultCtx = resultCanvas.getContext('2d');
+    
+    resultCtx.drawImage(cropImage,
+        x * scaleX, y * scaleY,
+        size * scaleX, size * scaleY,
+        0, 0, 200, 200
+    );
+    
+    userIcon = resultCanvas.toDataURL();
+    saveIcon();
+    updateUserIcon();
+    
+    // トリミング領域を非表示
+    document.getElementById('iconCropArea').style.display = 'none';
+    document.getElementById('iconInput').value = '';
+    
+    showToast('アイコンを変更しました');
+}
+
+function cancelCrop() {
+    document.getElementById('iconCropArea').style.display = 'none';
+    document.getElementById('iconInput').value = '';
 }
 
 function handleBackgroundChange(e) {
@@ -473,6 +675,18 @@ function clearBackground() {
     showToast('背景をクリアしました');
 }
 
+function handleOpacityChange(e) {
+    const isTransparent = e.target.checked;
+    if (isTransparent) {
+        document.body.classList.remove('bg-clear');
+        localStorage.setItem(STORAGE_KEYS.BG_OPACITY, 'false');
+    } else {
+        document.body.classList.add('bg-clear');
+        localStorage.setItem(STORAGE_KEYS.BG_OPACITY, 'true');
+    }
+    showToast(isTransparent ? '背景を薄く表示' : '背景をそのまま表示');
+}
+
 function handleThemeChange(e) {
     const theme = e.target.value;
     document.body.setAttribute('data-theme', theme);
@@ -487,6 +701,7 @@ function exportData() {
         icon: userIcon,
         background: backgroundImage,
         theme: localStorage.getItem(STORAGE_KEYS.THEME),
+        bgOpacity: localStorage.getItem(STORAGE_KEYS.BG_OPACITY),
         exportDate: new Date().toISOString()
     };
     
@@ -532,6 +747,17 @@ function importData(e) {
                 document.body.setAttribute('data-theme', data.theme);
                 localStorage.setItem(STORAGE_KEYS.THEME, data.theme);
                 document.getElementById('themeSelect').value = data.theme;
+            }
+            
+            if (data.bgOpacity !== undefined) {
+                localStorage.setItem(STORAGE_KEYS.BG_OPACITY, data.bgOpacity);
+                const isOpaque = data.bgOpacity === 'true';
+                document.getElementById('bgOpacityCheck').checked = !isOpaque;
+                if (isOpaque) {
+                    document.body.classList.add('bg-clear');
+                } else {
+                    document.body.classList.remove('bg-clear');
+                }
             }
             
             saveData();
