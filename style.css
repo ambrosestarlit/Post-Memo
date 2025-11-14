@@ -147,6 +147,28 @@ header h1 {
     transform: scale(1.1);
 }
 
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.btn-icon-inline {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    margin-right: 4px;
+    margin-top: -2px;
+}
+
+.btn-icon-small {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    margin-right: 4px;
+    margin-top: -2px;
+}
+
 /* ===== 投稿フォーム ===== */
 .post-form-container {
     max-width: 600px;
