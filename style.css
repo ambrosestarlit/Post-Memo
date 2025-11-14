@@ -587,6 +587,59 @@ header h1 {
     font-weight: normal;
 }
 
+/* ===== 背景パターン選択 ===== */
+.bg-pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.bg-pattern-item {
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.bg-pattern-item:hover {
+    transform: translateY(-4px);
+}
+
+.bg-pattern-preview {
+    width: 100%;
+    height: 80px;
+    border: 3px solid var(--theme-border);
+    border-radius: 8px;
+    margin-bottom: 4px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.bg-pattern-item.active .bg-pattern-preview {
+    border-color: var(--theme-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.bg-border-preview {
+    background: url('bg-border.png'), var(--theme-bg);
+    background-size: cover;
+}
+
+.bg-pattern-item span {
+    font-size: 0.85rem;
+    color: var(--theme-text);
+}
+
+@media (max-width: 480px) {
+    .bg-pattern-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 /* ===== トリミング領域 ===== */
 .crop-area {
     margin-top: 12px;
