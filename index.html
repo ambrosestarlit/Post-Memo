@@ -18,8 +18,12 @@
             <div class="header-content">
                 <img src="logo.png" alt="Memonto" class="app-logo">
                 <div class="header-actions">
-                    <button id="searchBtn" class="icon-btn" title="検索">🔍</button>
-                    <button id="settingsBtn" class="icon-btn" title="設定">⚙️</button>
+                    <button id="searchBtn" class="icon-btn" title="検索">
+                        <img src="icon-search.png" alt="検索" class="btn-icon">
+                    </button>
+                    <button id="settingsBtn" class="icon-btn" title="設定">
+                        <img src="icon-settings.png" alt="設定" class="btn-icon">
+                    </button>
                 </div>
             </div>
         </header>
@@ -30,10 +34,12 @@
                 <img id="currentUserIcon" src="" alt="アイコン" class="user-icon">
             </div>
             <div class="post-input-area">
-                <textarea id="postText" placeholder="いまどうしてる？" rows="3"></textarea>
+                <textarea id="postText" placeholder="なにをつぶやく？" rows="3"></textarea>
                 <div class="post-actions">
                     <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
-                    <label for="imageInput" class="btn-secondary">📷 画像</label>
+                    <label for="imageInput" class="btn-secondary">
+                        <img src="icon-camera.png" alt="画像" class="btn-icon-inline"> 画像
+                    </label>
                     <button id="postBtn" class="btn-primary">投稿</button>
                 </div>
                 <div id="imagePreview" class="image-preview"></div>
