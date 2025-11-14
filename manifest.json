@@ -1,7 +1,7 @@
 {
-  "name": "Memo SNS",
-  "short_name": "MemoSNS",
-  "description": "SNS風メモアプリ - あなたの思いつきを記録",
+  "name": "Memonto",
+  "short_name": "Memonto",
+  "description": "あなたの瞬間を記録するメモアプリ",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#F5E6D3",
