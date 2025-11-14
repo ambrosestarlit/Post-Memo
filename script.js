@@ -110,14 +110,6 @@ function initializeEventListeners() {
     // トリミング
     document.getElementById('cropConfirmBtn').addEventListener('click', confirmCrop);
     document.getElementById('cropCancelBtn').addEventListener('click', cancelCrop);
-    
-    const canvas = document.getElementById('iconCropCanvas');
-    canvas.addEventListener('mousedown', startCrop);
-    canvas.addEventListener('mousemove', moveCrop);
-    canvas.addEventListener('mouseup', endCrop);
-    canvas.addEventListener('touchstart', handleTouchStart);
-    canvas.addEventListener('touchmove', handleTouchMove);
-    canvas.addEventListener('touchend', endCrop);
 }
 
 // ===== デフォルトアイコン生成 =====
@@ -562,6 +554,12 @@ function showDesktopCropUI(width, height) {
     const canvas = document.getElementById('iconCropCanvas');
     const ctx = canvas.getContext('2d');
     canvas.style.cursor = 'crosshair';
+    
+    // PC用のイベントリスナーを追加
+    canvas.addEventListener('mousedown', startCrop);
+    canvas.addEventListener('mousemove', moveCrop);
+    canvas.addEventListener('mouseup', endCrop);
+    
     drawCropRect(ctx, width, height);
 }
 
@@ -582,11 +580,11 @@ function showMobileCropUI(width, height) {
     mobileControls.className = 'mobile-crop-controls';
     mobileControls.innerHTML = `
         <div class="crop-control-item">
-            <label>サイズ</label>
+            <label>サイズ調整</label>
             <input type="range" id="cropSizeSlider" min="50" max="${Math.min(width, height)}" value="${initialSize}" step="1">
         </div>
         <div class="crop-control-item">
-            <label>位置を調整（タップで移動）</label>
+            <label>📍 画像をタップして枠を移動</label>
         </div>
     `;
     
@@ -612,12 +610,22 @@ function showMobileCropUI(width, height) {
         drawCropRect(ctx, width, height);
     });
     
-    // タップで枠を移動
+    // タップで枠を移動（タッチイベントのみ）
     canvas.style.cursor = 'pointer';
-    canvas.addEventListener('click', (e) => {
+    canvas.style.touchAction = 'none';
+    
+    const handleTap = (e) => {
+        e.preventDefault();
         const rect = canvas.getBoundingClientRect();
-        const clickX = (e.clientX - rect.left) * (width / rect.width);
-        const clickY = (e.clientY - rect.top) * (height / rect.height);
+        let clickX, clickY;
+        
+        if (e.type === 'touchstart') {
+            clickX = (e.touches[0].clientX - rect.left) * (width / rect.width);
+            clickY = (e.touches[0].clientY - rect.top) * (height / rect.height);
+        } else {
+            clickX = (e.clientX - rect.left) * (width / rect.width);
+            clickY = (e.clientY - rect.top) * (height / rect.height);
+        }
         
         const size = cropEndX - cropStartX;
         cropStartX = Math.max(0, Math.min(width - size, clickX - size / 2));
@@ -626,7 +634,10 @@ function showMobileCropUI(width, height) {
         cropEndY = cropStartY + size;
         
         drawCropRect(ctx, width, height);
-    });
+    };
+    
+    canvas.addEventListener('touchstart', handleTap);
+    canvas.addEventListener('click', handleTap);
     
     drawCropRect(ctx, width, height);
 }
@@ -699,31 +710,6 @@ function moveCrop(e) {
 
 function endCrop(e) {
     isDragging = false;
-}
-
-function handleTouchStart(e) {
-    e.preventDefault();
-    const canvas = document.getElementById('iconCropCanvas');
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0];
-    cropStartX = touch.clientX - rect.left;
-    cropStartY = touch.clientY - rect.top;
-    isDragging = true;
-}
-
-function handleTouchMove(e) {
-    if (!isDragging) return;
-    e.preventDefault();
-    
-    const canvas = document.getElementById('iconCropCanvas');
-    const ctx = canvas.getContext('2d');
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0];
-    
-    cropEndX = touch.clientX - rect.left;
-    cropEndY = touch.clientY - rect.top;
-    
-    drawCropRect(ctx, canvas.width, canvas.height);
 }
 
 function confirmCrop() {
